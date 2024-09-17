@@ -43,15 +43,21 @@ async def ping(interaction: discord.Interaction):
     name="summarize",
     description="Fetches and summarizes a specified number of messages from the current channel",
 )
+@app_commands.describe(
+    count="Number of messages to summarize",
+    ephemeral="Whether the response should be visible only to you",
+)
 async def summarize(
     interaction: discord.Interaction,
-    count: app_commands.Range[int, 1, 50],
+    count: app_commands.Range[int, 1, 100],
     ephemeral: bool = True,
 ):
     await interaction.response.defer(ephemeral=ephemeral)
 
     messages = [message async for message in interaction.channel.history(limit=count)]
-    conversation = "\n".join([f"{msg.author.name}: {msg.content}" for msg in messages[::-1]])
+    conversation = "\n".join(
+        [f"{msg.author.name}: {msg.content}" for msg in messages[::-1]]
+    )
     response = completion(
         model="claude-3-haiku-20240307",
         messages=[
@@ -71,6 +77,10 @@ async def summarize(
 
 @client.tree.command(
     name="search", description="Performs a search for the provided topic"
+)
+@app_commands.describe(
+    topic="Topic to search",
+    ephemeral="Whether the response should be visible only to you",
 )
 async def search(interaction: discord.Interaction, topic: str, ephemeral: bool = True):
     await interaction.response.defer(ephemeral=ephemeral)
